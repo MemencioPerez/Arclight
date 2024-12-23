@@ -49,6 +49,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.registry.DynamicRegistries;
@@ -59,6 +60,7 @@ import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeManager;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.server.TicketType;
 import net.minecraft.world.storage.FolderName;
 import net.minecraft.world.storage.IWorldInfo;
 import net.minecraft.world.storage.PlayerData;
@@ -484,6 +486,7 @@ public abstract class PlayerListMixin implements PlayerListBridge {
 
         serverplayerentity.setPositionAndRotation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         serverplayerentity.connection.captureCurrentPosition();
+        serverWorld.getChunkProvider().registerTicket(TicketType.POST_TELEPORT, new ChunkPos(location.getBlockX() >> 4, location.getBlockZ() >> 4), 1, playerIn.getEntityId());
 
         this.setPlayerGameTypeBasedOnOther(serverplayerentity, playerIn, serverWorld);
         while (avoidSuffocation && !serverWorld.hasNoCollisions(serverplayerentity) && serverplayerentity.getPosY() < 256.0D) {

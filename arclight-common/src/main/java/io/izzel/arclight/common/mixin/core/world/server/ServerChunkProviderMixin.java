@@ -8,6 +8,7 @@ import io.izzel.arclight.common.bridge.world.server.TicketManagerBridge;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.IChunk;
 import net.minecraft.world.gen.ChunkGenerator;
 import net.minecraft.world.server.ChunkHolder;
 import net.minecraft.world.server.ChunkManager;
@@ -90,7 +91,7 @@ public abstract class ServerChunkProviderMixin implements ServerChunkProviderBri
 
     @Redirect(method = "tickChunks", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/GameRules;getBoolean(Lnet/minecraft/world/GameRules$RuleKey;)Z"))
     private boolean arclight$noPlayer(GameRules gameRules, GameRules.RuleKey<GameRules.BooleanValue> key) {
-        return gameRules.getBoolean(key) && !this.world.getPlayers().isEmpty();
+        return false;
     }
 
     @Redirect(method = "tickChunks", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/storage/IWorldInfo;getGameTime()J"))
@@ -131,5 +132,10 @@ public abstract class ServerChunkProviderMixin implements ServerChunkProviderBri
     @Redirect(method = "func_217224_a", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/server/ChunkHolder;getChunkLevel()I"))
     public int arclight$useOldTicketLevel(ChunkHolder chunkHolder) {
         return ((ChunkHolderBridge) chunkHolder).bridge$getOldTicketLevel();
+    }
+
+    @Override
+    public IChunk getChunkIfLoadedImmediately(int x, int z) {
+        return null;
     }
 }

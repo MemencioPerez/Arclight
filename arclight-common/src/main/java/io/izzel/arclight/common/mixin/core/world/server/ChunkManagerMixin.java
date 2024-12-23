@@ -19,7 +19,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import javax.annotation.Nullable;
+import java.util.Iterator;
 import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @Mixin(ChunkManager.class)
 public abstract class ChunkManagerMixin implements ChunkManagerBridge {
@@ -69,5 +72,19 @@ public abstract class ChunkManagerMixin implements ChunkManagerBridge {
     @Override
     public void bridge$setChunkGenerator(ChunkGenerator generator) {
         this.generator = generator;
+    }
+
+    @Redirect(method = "Lnet/minecraft/world/server/ChunkManager;isOutsideSpawningRadius(Lnet/minecraft/util/math/ChunkPos;)Z", at = @At(value = "INVOKE", target = "Ljava/util/stream/Stream;noneMatch(Ljava/util/function/Predicate;)Z"))
+    <T> boolean arclight$isOutsideSpawningRadius$noneMatch(Stream<T> instance, Predicate<? super T> predicate) {
+        Iterator<T> it = instance.iterator();
+
+        while (it.hasNext()) {
+            T t = it.next();
+            if (predicate.test(t)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

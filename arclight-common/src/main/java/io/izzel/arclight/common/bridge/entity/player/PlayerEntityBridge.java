@@ -11,6 +11,10 @@ public interface PlayerEntityBridge extends LivingEntityBridge {
 
     boolean bridge$isFauxSleeping();
 
+    int bridge$activatedTick();
+
+    void accessor$activatedTick(int activatedTick);
+
     @Override
     CraftHumanEntity bridge$getBukkitEntity();
 

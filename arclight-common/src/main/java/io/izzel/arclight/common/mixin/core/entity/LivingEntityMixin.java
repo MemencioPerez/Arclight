@@ -172,6 +172,7 @@ public abstract class LivingEntityMixin extends EntityMixin implements LivingEnt
     @Shadow public abstract boolean getShouldBeDead();
     @Shadow public abstract int getArrowCountInEntity();
     @Shadow @Final private static DataParameter<Integer> ARROW_COUNT_IN_ENTITY;
+    @Shadow protected int activeItemStackUseCount;
     @Shadow public abstract void setItemStackToSlot(EquipmentSlotType slotIn, ItemStack stack);
     // @formatter:on
 

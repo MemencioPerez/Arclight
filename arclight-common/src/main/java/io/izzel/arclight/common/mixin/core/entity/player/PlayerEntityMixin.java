@@ -127,9 +127,11 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin implements Pla
 
     public boolean fauxSleeping;
     public int oldLevel;
+    public int activatedTick;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void arclight$init(World p_i241920_1_, BlockPos p_i241920_2_, float p_i241920_3_, GameProfile p_i241920_4_, CallbackInfo ci) {
+        activatedTick = 0;
         oldLevel = -1;
         ((FoodStatsBridge) this.foodStats).bridge$setEntityHuman((PlayerEntity) (Object) this);
         ((IInventoryBridge) this.enterChestInventory).setOwner(this.getBukkitEntity());
@@ -138,6 +140,16 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin implements Pla
     @Override
     public boolean bridge$isFauxSleeping() {
         return fauxSleeping;
+    }
+
+    @Override
+    public int bridge$activatedTick() {
+        return this.activatedTick;
+    }
+
+    @Override
+    public void accessor$activatedTick(int activatedTick) {
+        this.activatedTick = activatedTick;
     }
 
     @Inject(method = "updateTurtleHelmet", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;addPotionEffect(Lnet/minecraft/potion/EffectInstance;)Z"))

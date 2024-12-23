@@ -1,5 +1,7 @@
 package io.izzel.arclight.common.mixin.core.world;
 
+import io.izzel.arclight.common.bridge.world.IBlockReaderBridge;
+import io.izzel.arclight.common.bridge.world.IWorldReaderBridge;
 import io.izzel.arclight.common.bridge.world.WorldBridge;
 import io.izzel.arclight.common.bridge.world.border.WorldBorderBridge;
 import io.izzel.arclight.common.bridge.world.server.ServerChunkProviderBridge;
@@ -9,7 +11,9 @@ import io.izzel.arclight.common.mod.server.world.WrappedWorlds;
 import io.izzel.arclight.common.mod.util.ArclightCaptures;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
@@ -22,10 +26,13 @@ import net.minecraft.world.IWorldWriter;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.ChunkStatus;
+import net.minecraft.world.chunk.IChunk;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.storage.IServerWorldInfo;
 import net.minecraft.world.storage.ISpawnWorldInfo;
 import net.minecraft.world.storage.IWorldInfo;
+import net.minecraftforge.server.timings.TimeTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v.CraftServer;
 import org.bukkit.craftbukkit.v.CraftWorld;
@@ -39,6 +46,7 @@ import org.bukkit.generator.ChunkGenerator;
 import org.spigotmc.SpigotWorldConfig;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
@@ -51,10 +59,11 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @Mixin(World.class)
-public abstract class WorldMixin implements WorldBridge, IWorldWriter {
+public abstract class WorldMixin implements WorldBridge, IWorldWriter, IWorldReaderBridge, IBlockReaderBridge, IWorld {
 
     // @formatter:off
     @Shadow @Nullable public TileEntity getTileEntity(BlockPos pos) { return null; }
@@ -67,6 +76,8 @@ public abstract class WorldMixin implements WorldBridge, IWorldWriter {
     @Shadow @Final private DimensionType dimensionType;
     @Shadow public abstract IWorldInfo getWorldInfo();
     @Shadow public abstract RegistryKey<World> getDimensionKey();
+    @Shadow public abstract IChunk getChunk(int x, int z, ChunkStatus requiredStatus, boolean nonnull);
+    @Shadow public static boolean isValid(BlockPos pos) { return false; }
     @Accessor("mainThread") public abstract Thread arclight$getMainThread();
     // @formatter:on
 
@@ -176,7 +187,7 @@ public abstract class WorldMixin implements WorldBridge, IWorldWriter {
     private void arclight$callBlockPhysics(BlockPos pos, Chunk chunk, BlockState blockstate, BlockState state, int flags, int recursionLeft, CallbackInfo ci) {
         try {
             if (this.world != null) {
-                BlockPhysicsEvent event = new BlockPhysicsEvent(CraftBlock.at((IWorld) this, pos), CraftBlockData.fromData(state));
+                BlockPhysicsEvent event = new BlockPhysicsEvent(CraftBlock.at(this, pos), CraftBlockData.fromData(state));
                 Bukkit.getPluginManager().callEvent(event);
                 if (event.isCancelled()) {
                     ci.cancel();
@@ -193,7 +204,7 @@ public abstract class WorldMixin implements WorldBridge, IWorldWriter {
     private void arclight$callBlockPhysics2(BlockPos pos, Block blockIn, BlockPos fromPos, CallbackInfo ci, BlockState blockState) {
         try {
             if (this.world != null) {
-                IWorld iWorld = (IWorld) this;
+                WorldMixin iWorld = this;
                 BlockPhysicsEvent event = new BlockPhysicsEvent(CraftBlock.at(iWorld, pos), CraftBlockData.fromData(blockState), CraftBlock.at(iWorld, fromPos));
                 Bukkit.getPluginManager().callEvent(event);
                 if (event.isCancelled()) {
@@ -320,5 +331,48 @@ public abstract class WorldMixin implements WorldBridge, IWorldWriter {
             return ((WorldBridge) getWorld().getHandle()).bridge$getAddEntityReason();
         }
         return null;
+    }
+
+    @Override
+    public IChunk getChunkIfLoadedImmediately(int x, int z) {
+        return this.getChunk(x, z, ChunkStatus.FULL, false);
+    }
+
+    @Override
+    public BlockState getTypeIfLoaded(BlockPos blockPos) {
+        if (!isValid(blockPos)) {
+            return Blocks.AIR.getDefaultState();
+        } else {
+            IChunk chunkIfLoadedImmediately = this.getChunkIfLoadedImmediately(blockPos.getX() >> 4, blockPos.getZ() >> 4);
+            return chunkIfLoadedImmediately == null ? null : chunkIfLoadedImmediately.getBlockState(blockPos);
+        }
+    }
+
+    @Override
+    public FluidState getFluidIfLoaded(BlockPos blockPos) {
+        if (!isValid(blockPos)) {
+            return null;
+        } else {
+            IChunk chunkIfLoadedImmediately = this.getChunkIfLoadedImmediately(blockPos.getX() >> 4, blockPos.getZ() >> 4);
+            return chunkIfLoadedImmediately == null ? null : chunkIfLoadedImmediately.getFluidState(blockPos);
+        }
+    }
+
+    /**
+     * @author
+     * @reason
+     */
+    @Overwrite
+    public void guardEntityTick(Consumer<Entity> consumerEntity, Entity entityIn) {
+        try {
+            TimeTracker.ENTITY_UPDATE.trackStart(entityIn);
+            consumerEntity.accept(entityIn);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            ArclightMod.LOGGER.error("Ticking entity crash prevented:");
+            ArclightMod.LOGGER.catching(throwable);
+        } finally {
+            TimeTracker.ENTITY_UPDATE.trackEnd(entityIn);
+        }
     }
 }

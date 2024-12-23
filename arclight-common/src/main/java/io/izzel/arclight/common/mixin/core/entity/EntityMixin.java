@@ -193,6 +193,7 @@ public abstract class EntityMixin implements InternalEntityBridge, EntityBridge,
     @Shadow public abstract boolean isSilent();
     @Shadow public abstract void setInvisible(boolean invisible);
     @Shadow protected abstract void getRecursivePassengers(boolean playersOnly, Set<Entity> passengers);
+    @Shadow public abstract boolean canCollide(Entity entity);
     // @formatter:on
 
     private static final int CURRENT_LEVEL = 2;
@@ -201,6 +202,7 @@ public abstract class EntityMixin implements InternalEntityBridge, EntityBridge,
     public org.bukkit.projectiles.ProjectileSource projectileSource; // For projectiles only
     public boolean forceExplosionKnockback; // SPIGOT-949
     public boolean persistentInvisibility = false;
+    protected boolean collisionCanLoadChunks;
 
     private CraftEntity bukkitEntity;
 
@@ -939,5 +941,15 @@ public abstract class EntityMixin implements InternalEntityBridge, EntityBridge,
 
     protected Optional<TeleportationRepositioner.Result> findOrCreatePortal(ServerWorld serverWorld, BlockPos pos, boolean flag, int searchRadius, boolean canCreatePortal, int createRadius) {
         return ((TeleporterBridge) serverWorld.getDefaultTeleporter()).bridge$findPortal(pos, searchRadius);
+    }
+
+    @Override
+    public boolean bridge$collisionCanLoadChunks() {
+        return this.collisionCanLoadChunks;
+    }
+
+    @Override
+    public void bridge$collisionCanLoadChunks(boolean collisionCanLoadChunks) {
+        this.collisionCanLoadChunks = collisionCanLoadChunks;
     }
 }

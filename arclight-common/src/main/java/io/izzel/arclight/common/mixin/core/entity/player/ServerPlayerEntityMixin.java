@@ -79,6 +79,7 @@ import net.minecraft.world.biome.BiomeManager;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.storage.IWorldInfo;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ITeleporter;
 import net.minecraftforge.fml.hooks.BasicEventHooks;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
@@ -104,6 +105,7 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerLocaleChangeEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MainHand;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -701,7 +703,8 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntityMixin implemen
     @Inject(method = "sendAllContents", at = @At("RETURN"))
     private void arclight$sendExtra(Container container, NonNullList<ItemStack> itemsList, CallbackInfo ci) {
         ArclightCaptures.captureContainerOwner((ServerPlayerEntity) (Object) this);
-        if (EnumSet.of(InventoryType.CRAFTING, InventoryType.WORKBENCH).contains(((ContainerBridge) container).bridge$getBukkitView().getType())) {
+        InventoryView inventoryView = ((ContainerBridge) container).bridge$getBukkitView();
+        if (inventoryView != null && EnumSet.of(InventoryType.CRAFTING, InventoryType.WORKBENCH).contains(inventoryView.getType())) {
             this.connection.sendPacket(new SSetSlotPacket(container.windowId, 0, container.getSlot(0).getStack()));
         }
         ArclightCaptures.resetContainerOwner();
@@ -749,6 +752,9 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntityMixin implemen
 
     @Inject(method = "setGameType", cancellable = true, at = @At("HEAD"))
     private void arclight$gameModeChange(GameType gameType, CallbackInfo ci) {
+        if ((ServerPlayerEntity) (Object) this instanceof FakePlayer) {
+            return;
+        }
         if (gameType == this.interactionManager.getGameType()) {
             ci.cancel();
             return;

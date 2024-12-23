@@ -1,7 +1,10 @@
 package io.izzel.arclight.common.mixin.core.world.gen;
 
+import io.izzel.arclight.common.bridge.world.IBlockReaderBridge;
 import io.izzel.arclight.common.bridge.world.WorldBridge;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.SectionPos;
 import net.minecraft.world.gen.WorldGenRegion;
 import net.minecraft.world.gen.feature.structure.Structure;
@@ -17,7 +20,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import java.util.stream.Stream;
 
 @Mixin(WorldGenRegion.class)
-public abstract class WorldGenRegionMixin implements WorldBridge {
+public abstract class WorldGenRegionMixin implements WorldBridge, IBlockReaderBridge {
 
     // @formatter:off
     @Shadow public abstract boolean addEntity(Entity entityIn);
@@ -54,5 +57,10 @@ public abstract class WorldGenRegionMixin implements WorldBridge {
     @Overwrite
     public Stream<? extends StructureStart<?>> func_241827_a(SectionPos p_241827_1_, Structure<?> p_241827_2_) {
         return this.world.getStructureManager().getStructureManager((WorldGenRegion) (Object) this).func_235011_a_(p_241827_1_, p_241827_2_);
+    }
+
+    @Override
+    public BlockState getTypeIfLoaded(BlockPos blockPos) {
+        return null;
     }
 }

@@ -409,6 +409,7 @@
     "world.IServerWorldMixin",
     "world.IWorldMixin",
     "world.IWorldWriterMixin",
+    "world.RegionMixin",
     "world.TeleporterMixin",
     "world.TrackedEntityMixin",
     "world.WorldMixin",

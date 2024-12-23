@@ -20,6 +20,14 @@
     "realtime.ItemEntityMixin_Realtime",
     "realtime.PlayerInteractionManagerMixin_Realtime",
     "trackingrange.ChunkManagerMixin_TrackingRange",
-    "chunkticking.ServerChunkProviderMixin_Optimize"
+    "chunkticking.ServerChunkProviderMixin_Optimize",
+    "chunkticking.WalkNodeProcessorMixin_Optimize",
+    "chunkticking.FrostedIceBlockMixin_Optimize",
+    "chunkticking.FlowingFluidMixin_Optimize",
+    "chunkticking.TileEntityMergerMixin_Optimize",
+    "chunkticking.StructureMixin_Optimize",
+    "chunkticking.WorldEntitySpawnerMixin_Optimize",
+    "chunkticking.VoxelShapeSpliteratorMixin_Optimize",
+    "chunkticking.VoxelShapesMixin_Optimize"
   ]
 }
