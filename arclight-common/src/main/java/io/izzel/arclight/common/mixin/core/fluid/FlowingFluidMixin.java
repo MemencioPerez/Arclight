@@ -43,7 +43,7 @@ public abstract class FlowingFluidMixin {
 
     @Redirect(method = "func_207937_a", at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FlowingFluid;canFlow(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/util/Direction;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/fluid/FluidState;Lnet/minecraft/fluid/Fluid;)Z"))
     public boolean arclight$flowInto(FlowingFluid flowingFluid, IBlockReader worldIn, BlockPos fromPos, BlockState fromBlockState, Direction direction, BlockPos toPos, BlockState toBlockState, FluidState toFluidState, Fluid fluidIn) {
-        if (this.canFlow(worldIn, fromPos, fromBlockState, direction, toPos, toBlockState, toFluidState, fluidIn)) {
+        if (toBlockState != null && this.canFlow(worldIn, fromPos, fromBlockState, direction, toPos, toBlockState, toFluidState, fluidIn)) {
             Block source = CraftBlock.at(((World) worldIn), fromPos);
             BlockFromToEvent event = new BlockFromToEvent(source, CraftBlock.notchToBlockFace(direction));
             Bukkit.getPluginManager().callEvent(event);

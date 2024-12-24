@@ -30,7 +30,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class FlowingFluidMixin_Optimize extends Fluid {
 
     // @formatter:off
-    @Shadow protected abstract boolean canFlow(IBlockReader var1, BlockPos var2, BlockState var3, Direction var4, BlockPos var5, BlockState var6, FluidState var7, Fluid var8);
     @Shadow private static short func_212752_a(BlockPos p_212752_0_, BlockPos p_212752_1_) {
         return 0;
     }
@@ -45,11 +44,6 @@ public abstract class FlowingFluidMixin_Optimize extends Fluid {
     @Redirect(method = "Lnet/minecraft/fluid/FlowingFluid;func_207937_a(Lnet/minecraft/world/IWorld;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/FluidState;Lnet/minecraft/block/BlockState;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/IWorld;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;"))
     public BlockState arclight$getBlockState$func_207937_a(IWorld instance, BlockPos blockPos) {
         return ((IBlockReaderBridge) instance).getTypeIfLoaded(blockPos);
-    }
-
-    @Redirect(method = "Lnet/minecraft/fluid/FlowingFluid;func_207937_a(Lnet/minecraft/world/IWorld;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/FluidState;Lnet/minecraft/block/BlockState;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FlowingFluid;canFlow(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/util/Direction;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/fluid/FluidState;Lnet/minecraft/fluid/Fluid;)Z"))
-    public boolean arclight$canFlow$func_207937_a(FlowingFluid instance, IBlockReader reader, BlockPos p_205570_2_, BlockState p_205570_3_, Direction p_205570_4_, BlockPos p_205570_5_, BlockState state, FluidState p_205570_7_, Fluid p_205570_8_) {
-        return state != null && this.canFlow(reader, p_205570_2_, p_205570_3_, p_205570_4_, p_205570_5_, state, p_205570_7_, p_205570_8_);
     }
 
     @Redirect(method = "Lnet/minecraft/fluid/FlowingFluid;calculateCorrectFlowingState(Lnet/minecraft/world/IWorldReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Lnet/minecraft/fluid/FluidState;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/IWorldReader;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;"))
